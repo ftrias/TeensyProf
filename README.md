@@ -24,6 +24,10 @@ a build, but Teensyduino does not include it.
 
 3. Modify `readfile.py` so `gprof` has correct path to executable from step 2.
 
+4. Modify `imxrt1062.ld` in the directory Arduino.../Contents/Java/hardware/teensy/avr/cores/teensy4.
+All references to `.text.itcm` must be changed to `.text`. Gprof expects the code
+to be in a segment named `.text`.
+
 Overview
 -------------
 
@@ -43,7 +47,7 @@ Quick Instructions
 --------------
 
 1. Modify platforms.txt as above
-2. Build gprof
+2. Build gprof & modify `readfile.py`
 3. Open up Arduino and TeensyProf example
 4. Select Tools/Optimize/Debug
 5. Select a USB that includes Serial
@@ -51,7 +55,7 @@ Quick Instructions
 7. Run `readfile.py --serial /dev/cu.usb*` [substitute actual usb serial]
 
 `readfile.py` will open the serial port, print out anything it receives
-and process the `gmon.out` data. It will write out the `gmon.out` file and then
+and process the special `gmon.out` data. It will write out the `gmon.out` file and then
 run `gprof` showing the outout.
 
 The library also supports writing the `gmon.out` file to an SD card. See
