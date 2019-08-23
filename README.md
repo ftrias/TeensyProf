@@ -16,7 +16,7 @@ Requires
 
 recipe.hooks.postbuild.4.pattern="cp" "{build.path}/{build.project_name}.elf" "/tmp/build.elf"
 
-2. Build of gprof for ARM or use provided binaries in "bin" directory. 
+2. Build of gprof for ARM or use provided binaries in "binaries" directory. 
 Instructions for building are beyond the scope of this
 text. Look up how to install your own cross-compiler, including arm-none-eabi-gprof. 
 Normally this is part of
