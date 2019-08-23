@@ -34,13 +34,24 @@ extern void (* _VectorsRam[])(void);
 extern "C" void systick_isr(void);
 auto save_isr = _VectorsRam[15]; 
 
+#ifdef __IMXRT1062__  // Teensy 4
+
 // from the linker file
 extern const uint32_t _stext;
 extern const uint32_t _etext;
-
 // the lowest and highest program addresses
 const uint32_t lowpc = (const uint32_t)&_stext;
 const uint32_t highpc = (const uint32_t)&_etext;
+
+#else
+
+// from the linker file
+extern const uint32_t _etext;
+// the lowest and highest program addresses
+const uint32_t lowpc = 0x410;
+const uint32_t highpc = (const uint32_t)&_etext;
+
+#endif
 
 int scale = 4; // shift addresses by this number
 #define ADDR2IDX(addr) ((addr-lowpc)>>scale)
