@@ -1,0 +1,136 @@
+#!/usr/bin/env python3
+
+import pygame.midi
+import array
+import binascii
+import argparse
+
+def print_midi_devices(name):
+    for n in range(pygame.midi.get_count()):
+        interface, id, inp, outp, x = pygame.midi.get_device_info(n)
+        if inp:
+            if str(id).find(name) != -1:
+                print(id)
+                return n
+    raise Exception("MIDI device not found")
+    return 0
+
+def process_message(message):
+    global of
+    code = message.pop(0)
+    if code == 1:
+        filename = ''.join(map(chr, message))
+        of = open(filename, "wb")
+        print("open:", filename)
+    elif code == 2:
+        of.close()
+        print("close")
+    elif code == 3:
+        result = []
+        for b0, b1 in zip(*[iter(message)]*2):
+            b = (b0 << 4) + b1
+            result.append(b)
+        bytes = array.array('B', result).tostring()
+        of.write(bytes)
+        print("w", end='', flush=True)
+    else:
+        print("invalid:", message)
+
+def read_midi_input(input_device):
+    message = []
+    while True:
+        if input_device.poll():
+            event = input_device.read(1)[0][0]
+            #print("D:",event)
+            for code in event:
+                if code == 0xF7: # end of message!
+                    process_message(message)
+                elif code == 0xF0: # end of message!
+                    message = []
+                else:
+                    message.append(code)
+
+
+def process_midi(name):
+    pygame.midi.init()
+    d = print_midi_devices(name)
+    my_input = pygame.midi.Input(d)
+    read_midi_input(my_input)
+
+def process_hex(filename, outfile):
+    with open(filename) as inf:
+        with open(outfile, "wb") as outf:
+            for line in inf:
+                outf.write(binascii.a2b_hex(line.strip()))
+
+def process_msg(fxn, n, str):
+  # print("process",fxn,n,str)
+  global fp
+  global ser
+  if fxn == 1:  # open
+    (fmode, fname) = str.split(":", 2)
+    fp = open(fname, fmode)
+    # os.write(ser, '0x00')
+    print("open %s" % fname)
+  elif fxn == 2:  # close
+    fp.close()
+    # os.write(ser, '0x00')
+    print("close")
+  elif fxn == 3:  # read
+    d = fp.read(n)
+    os.write(ser, chr(l), 1)
+    os.write(ser, d, l)
+  elif fxn == 4:  # write
+    fp.write(str)
+    # os.write(ser, '0x00')
+
+
+def filehost():
+  global ser
+  fxn = os.read(ser, 1)  # function
+  # print("@",fxn,"%")
+  fxn = ord(fxn)
+  n = os.read(ser, 1)  # length
+  n = ord(n)
+  s = os.read(ser, n)  # data
+  process_msg(fxn, n, s)
+
+
+def process_serial(devlist):
+  for file in devlist:
+    # if file in seen: continue
+    #print("*****open %s" % file)
+    try:
+      ser = os.open(file, os.O_RDWR)
+    except:
+      #print("fail")
+      continue
+    print("-------")
+    while True:
+      try:
+        c = os.read(ser, 1)
+      except OSError:
+        break
+      if len(c) > 0:
+        if ord(c) == 1:  # control
+          # print('!',c,'#')
+          filehost()
+        else:
+          sys.stdout.write(c)
+    print("*****close %s" % file)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Parse gmon.out file from Teensy.')
+    parser.add_argument('--hex', help='Convert from ascii hex')
+    parser.add_argument('--midi', help='Read midi device')
+    parser.add_argument('--serial', help='Read serial device')
+
+    args = parser.parse_args()
+    if args.hex is not None:
+        process_hex(args.hex, "gmon.out")
+    elif args.midi is not None:
+        process_midi(args.midi)
+    elif args.serial is not None:
+        process_serial(args.serial)
+    else:
+        print("Nothing to do")
