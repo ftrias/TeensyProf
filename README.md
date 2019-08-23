@@ -22,6 +22,8 @@ text. Look up how to install your own cross-compiler, including arm-none-eabi-gp
 Normally this is part of
 a build, but Teensyduino does not include it.
 
+3. Modify `readfile.py` so `gprof` has correct path to executable from step 2.
+
 Overview
 -------------
 
