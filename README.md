@@ -16,8 +16,10 @@ Requires
 
 recipe.hooks.postbuild.4.pattern="cp" "{build.path}/{build.project_name}.elf" "/tmp/build.elf"
 
-2. Build of gprof for ARM. Instructions for this are beyond the scope of this
-text. Look up how to build your own cross-compiler. Normally, this is part of
+2. Build of gprof for ARM or use provided binaries in "bin" directory. 
+Instructions for building are beyond the scope of this
+text. Look up how to install your own cross-compiler, including arm-none-eabi-gprof. 
+Normally this is part of
 a build, but Teensyduino does not include it.
 
 Overview
@@ -49,6 +51,30 @@ Quick Instructions
 `readfile.py` will open the serial port, print out anything it receives
 and process the `gmon.out` data. It will write out the `gmon.out` file and then
 run `gprof` showing the outout.
+
+The library also supports writing the `gmon.out` file to an SD card. See
+`TEENSYPROF_OUT` in `TeensyProf.h` and implementation in `TeensyProfOut.cpp`.
+
+Short Example
+----------------
+
+```C++
+void setup() {
+  Serial.begin(115200);
+  if (! TeensyProf_begin()) {
+    Serial.println("fail");
+  }
+}
+
+void loop() {
+  static long start = millis();
+  do_something();
+  if (start && millis() - start > 10000) {
+    TeensyProf_end();
+    start = 0;
+  }
+}
+```
 
 Todo
 --------------
