@@ -1,6 +1,10 @@
 TeensyProf
 =====================
 
+You are probably looking for: https://github.com/ftrias/TeensyGProf
+
+This repository is obsolete and will be going away soon.
+
 Limited implementation of gprof profiler for Teensy 4 platform from PJRC.
 
 Only the histogram is implemented. Call heirarchies are not available because
